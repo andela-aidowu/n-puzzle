@@ -1,6 +1,6 @@
 'use strict';
 
-var goalState = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15];
+var goalState = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 var startTime,
   endTime,
   checked = 0,
@@ -144,7 +144,6 @@ function ida_star (root){
   var bound = calcHeuristicCost(root);
   while (true) {
     var t = search(root, 0, bound);
-    console.log(t);
     if (t === 'FOUND') {
       return result;
     }
@@ -156,6 +155,7 @@ function ida_star (root){
 }
 
 function search(node, g, bound) {
+  // console.log('Bound: ' + bound + ' Checked: ' + checked);
   var f = g + calcHeuristicCost(node);
   if (f > bound) {
     return f;
@@ -189,6 +189,7 @@ function time() {
   startTime = new Date();
   ida_star(puzzle);
   console.log(result);
+  console.log('Steps taken is: ' + result.length);
   endTime = new Date();
   console.log(checked);
   console.log('Operation took ' + (endTime.getTime() - startTime.getTime()) + ' msec');
