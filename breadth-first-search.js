@@ -132,31 +132,40 @@ function checkSolvable(state) {
   return count % 2 === 0;
 }
 
-function generatePuzzle() {
-  var arr = [];
-  while(arr.length < 9){
-    var randomNumber = Math.floor(Math.random()*9);
-    var found = false;
-    for(var i = 0; i < arr.length; i++){
-      if(arr[i] === randomNumber){
-        found = true;
-        break;
-      }
-    }
-    if(!found) {
-      arr[arr.length] = randomNumber;
-    }
+/* Fisher-Yates shuffle http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle*/
+function shuffle(array) {
+  var size = array.length;
+  var rand;
+  for (var i = 1; i < size; i += 1) {
+    rand = Math.round(Math.random() * i);
+    swap(array, rand, i);
   }
-  if(!checkSolvable(arr)) {
-    console.log('\n This puzzle: ' + arr + ' is unsolvable. \n Generating a new one \n');
-    return generatePuzzle();
+  return array;
+}
+
+function generatePuzzle(state) {
+  var firstElement, secondElement;
+  var _state = state.slice();
+  shuffle(_state);
+  if (!checkSolvable(_state)) {
+    // console.log('ok');
+    firstElement = _state[0] !== 0 ? 0 : 3;
+    secondElement = _state[1] !== 0 ? 1 : 3;
+    swap(_state, firstElement, secondElement);
   }
-  return [8,6,7,2,5,4,3,0,1];
+  // _state = [1, 0, 2, 3, 4, 5, 6, 7, 8];
+  // _state = [0,7,4,8,2,1,5,3,6];
+  // _state = [6,3,1,4,7,2,0,5,8];
+  // _state = [8,0,1,3,4,7,2,6,5];
+  // _state = [8, 6, 7, 2, 5, 4, 3, 0, 1]; //32 steps
+  // _state = [0,8,7,6,3,5,1,4,2]; //29 steps
+  console.log('Puzzle to solve: [' + _state + ']');
+  return _state;
 }
 
 function time() {
   startTime = new Date();
-  var puzzle = generatePuzzle();
+  var puzzle = generatePuzzle(goalState);
   console.log('Puzzle to solve', puzzle);
   var result = breadthFirstSearch(puzzle, goalState);
   console.log(result.length);
