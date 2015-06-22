@@ -5,8 +5,9 @@ var startTime,
   endTime,
   checked = 0,
   goalMap = {},
-  size,
-  result = [];
+  size = 3,
+  result = [],
+  hash = {};
 
 /* Fisher-Yates shuffle http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle*/
 function shuffle(array) {
@@ -52,7 +53,7 @@ function generatePuzzle(state) {
     secondElement = _state[1] !== 0 ? 1 : 3;
     swap(_state, firstElement, secondElement);
   }
-  // _state = [1, 0, 2, 3, 4, 5, 6, 7, 8];
+  // _state = [1, 2, 5, 3, 4, 0, 6, 7, 8];
   // _state = [0,7,4,8,2,1,5,3,6];
   // _state = [6,3,1,4,7,2,0,5,8];
   // _state = [8,0,1,3,4,7,2,6,5];
@@ -124,20 +125,58 @@ function getSuccessors(state) {
   return successors;
 }
 
+function time() {
+  var puzzle = generatePuzzle(goalState);
+  for (var i = 0; i < goalState.length; i++) {
+    goalMap[goalState[i]] = i;
+  }
+  size = Math.sqrt(goalState.length);
+  startTime = new Date();
+  createHash(goalState);
+  endTime = new Date();
+  console.log('Creating hash took ' + (endTime.getTime() - startTime.getTime()) + ' msec');
+  startTime = new Date();
+  ida_star(puzzle);
+  endTime = new Date();
+  console.log('Steps taken is: ' + result.length);
+  console.log(result);
+  console.log('Operation took ' + (endTime.getTime() - startTime.getTime()) + ' msec');
+  console.log(checked);
+}
+time();
+
+function hashState(state) {
+  var stateLength = state.length;
+  var hash = 0;
+  for (var i = 0; i < stateLength; i++) {
+    hash += state[i] * Math.pow(stateLength, i);
+  }
+  return hash;
+}
+
 function calcHeuristicCost(state) {
-  var totalDist = 0;
-  for (var i = 0; i < state.length - 1; i++) {
-    var q = state[i];
-    if (q !== 0) {
-      var realPos = goalMap[q];
-      var realCol = realPos % size;
-      var realRow = Math.floor(realPos / size);
-      var col = i % size;
-      var row = Math.floor(i / size);
-      totalDist += (Math.abs(realCol - col) + Math.abs(realRow - row));
+  var _hash = hashState(state);
+  return hash[_hash];
+}
+
+function createHash(state) {
+  state.depth = 0;
+  var _hash = hashState(state);
+  hash[_hash] = state.depth;
+  var openList = [state];
+  for (var i = 0; i < openList.length; i++) {
+    var current = openList[i];
+    var successors = getSuccessors(current);
+    for (var j = 0; j < successors.length; j++) {
+      var _current = successors[j];
+      _current.depth = current.depth + 1;
+      _hash = hashState(_current);
+      if (typeof hash[_hash] === 'undefined') {
+        hash[_hash] = _current.depth;
+        openList.push(_current);
+      }
     }
   }
-  return totalDist;
 }
 
 function ida_star (root){
@@ -179,20 +218,3 @@ function search(node, g, bound) {
   }
   return min;
 }
-
-function time() {
-  var puzzle = generatePuzzle(goalState);
-  for (var i = 0; i < goalState.length; i++) {
-    goalMap[goalState[i]] = i;
-  }
-  size = Math.sqrt(goalState.length);
-  startTime = new Date();
-  ida_star(puzzle);
-  console.log(result);
-  console.log('Steps taken is: ' + result.length);
-  endTime = new Date();
-  console.log(checked);
-  console.log('Operation took ' + (endTime.getTime() - startTime.getTime()) + ' msec');
-}
-time();
-
