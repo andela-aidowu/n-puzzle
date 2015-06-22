@@ -4,7 +4,6 @@ var goalState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
 var openList = new CustomHeap(),
   startTime,
   endTime,
-  solved = false,
   steps = 0,
   counter = 100,
   counted = 0,
@@ -23,13 +22,13 @@ function statesPer100Millisecond() {
 }
 
 function hashState(state) {
-    var stateLength = state.length;
-    var hash = 0;
-    for (var i = 0; i < stateLength; i++) {
-      hash += state[i] * Math.pow(stateLength, i);
-    }
-    return hash;
+  var stateLength = state.length;
+  var hash = 0;
+  for (var i = 0; i < stateLength; i++) {
+    hash += state[i] * Math.pow(stateLength, i);
   }
+  return hash;
+}
   /* Fisher-Yates shuffle http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle*/
 function shuffle(array) {
   var size = array.length;
@@ -79,7 +78,7 @@ function generatePuzzle(state) {
   // _state = [0,7,4,8,2,1,5,3,6];
   // _state = [6,3,1,4,7,2,0,5,8];
   // _state = [8,0,1,3,4,7,2,6,5];
-  // _state = [8, 6, 7, 2, 5, 4, 3, 0, 1]; //32 steps
+  _state = [8, 6, 7, 2, 5, 4, 3, 0, 1]; //32 steps
   // _state = [0,8,7,6,3,5,1,4,2]; //29 steps
   console.log('Puzzle to solve: [' + _state + ']');
   return _state;
@@ -183,12 +182,8 @@ function aStarSearch(state) {
   _state = hashState(state);
   hash[_state] = true;
   while (!openList.empty()) {
-    // swap(openList, openList.length - 1, 0);
     var currentState = openList.pop();
-    // siftDown(openList, 0);
-    // statesPer100Millisecond();
     if (compare(goalState, currentState)) {
-      // solved = true;
       collateSteps(currentState);
       break;
     }
@@ -225,12 +220,15 @@ function time() {
 time();
 
 function CustomHeap() {
-  var values = new Array(1000000)
+  var values = new Array(1000000);
   var size = 0;
   this.empty = function() {
-    return size === 0
+    return size === 0;
+  };
+
+  function parent(index) {
+    return Math.floor((index - 1) / 2);
   }
-  // this.values = new Array(1000000);
 
   this.push = function(element) {
     values[size] = element;
@@ -245,15 +243,31 @@ function CustomHeap() {
       node = parent(node);
     }
     size++;
-  }
+  };
+
   this.pop = function() {
-    var _size = size - 1
+    var _size = size - 1;
     swap(_size, 0);
     var currentState = values[_size];
     values[_size] = undefined;
     size--;
     siftDown(0);
     return currentState;
+  };
+
+
+  function left(index) {
+    return index * 2 + 1;
+  }
+
+  function right(index) {
+    return (index * 2) + 2;
+  }
+
+  function swap(from, to) {
+    var _ = values[from];
+    values[from] = values[to];
+    values[to] = _;
   }
 
   function siftDown(i) {
@@ -280,21 +294,6 @@ function CustomHeap() {
     }
   }
 
-  function swap(from, to) {
-    var _ = values[from];
-    values[from] = values[to];
-    values[to] = _;
-  }
 
-  function parent(index) {
-    return Math.floor((index - 1) / 2);
-  }
 
-  function left(index) {
-    return index * 2 + 1;
-  }
-
-  function right(index) {
-    return (index * 2) + 2;
-  }
 }
